@@ -1,25 +1,33 @@
+from datetime import date
+
+from abcbank.customer import Customer
+
 class Bank:
+    '''
+    A Bank is a list of Customers
+    '''
     def __init__(self):
         self.customers = []
 
-    def addCustomer(self, customer):
+    def add_customer(self, customer_name):
+        customer = Customer(customer_name)
         self.customers.append(customer)
-    def customerSummary(self):
+        return customer
+
+    @property
+    def customer_summary(self):
         summary = "Customer Summary"
         for customer in self.customers:
-            summary = summary + "\n - " + customer.name + " (" + self._format(customer.numAccs(), "account") + ")"
+            summary = """{summary}
+ - {customer_name} ({account_count} account{s})""".format(summary = summary
+            , customer_name = customer.name
+            , account_count =  len(customer.accounts)
+            , s = 's' if len(customer.accounts) - 1 else '')
         return summary
-    def _format(self, number, word):
-        return str(number) + " " + (word if (number == 1) else word + "s")
-    def totalInterestPaid(self):
-        total = 0
-        for c in self.customers:
-            total += c.totalInterestEarned()
-        return total
-    def getFirstCustomer(self):
-        try:
-            self.customers = None
-            return self.customers[0].name
-        except Exception as e:
-            print(e)
-            return "Error"
+
+    @property
+    def total_interest_paid(self, end_date = None):
+        if end_date is None:
+            end_date = date.today()
+        return sum(sum([account.interest_earned(end_date)
+                        for account in customer.accounts]) for customer in self.customers)
